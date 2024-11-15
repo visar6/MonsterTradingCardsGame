@@ -12,7 +12,7 @@ namespace MonsterTradingCardsGameClient
     {
         const string ascii = "\r\n   *                        \r\n (  `    *   )  (   (       \r\n )\\))( ` )  /(  )\\  )\\ )    \r\n((_)()\\ ( )(_)|((_)(()/(    \r\n(_()((_|_(_()))\\___ /(_))_  \r\n|  \\/  |_   _((/ __(_)) __| \r\n| |\\/| | | |  | (__  | (_ | \r\n|_|  |_| |_|   \\___|  \\___| \r\n                            \r\n";
 
-        public static async void Greet()
+        public static void Greet()
         {
             Console.WriteLine(ascii);
 
@@ -35,7 +35,7 @@ namespace MonsterTradingCardsGameClient
                 }
                 else if (input == "2")
                 {
-                    await Register();
+                    Register();
                     break;
                 }
                 else if (input == "3")
@@ -52,10 +52,8 @@ namespace MonsterTradingCardsGameClient
             }
         }
 
-        public static async void Login()
+        public static void Login()
         {
-            await Task.Delay(10);
-
             Console.Clear();
             Console.WriteLine(ascii);
 
@@ -103,9 +101,8 @@ namespace MonsterTradingCardsGameClient
             return password;
         }
 
-        public static async Task Register()
+        public static void Register()
         {
-            await Task.Delay(10);
 
             Console.Clear();
             Console.WriteLine(ascii);
@@ -135,7 +132,7 @@ namespace MonsterTradingCardsGameClient
         {
             using (HttpClient client = new HttpClient())
             {
-                var url = "http://127.0.0.1:12000/register";
+                var url = "http://127.0.0.1:10001/users";
 
                 var jsonContent = new
                 {
@@ -152,7 +149,6 @@ namespace MonsterTradingCardsGameClient
                 if (response.IsSuccessStatusCode)
                 {
                     Console.WriteLine("\nYou were registered successfully, you will be redirected shortly to the main page ... ");
-                    await Task.Delay(5000);
                     return "SUCCESS";
                 }
                 else
@@ -169,7 +165,7 @@ namespace MonsterTradingCardsGameClient
         {
             using (HttpClient client = new HttpClient())
             {
-                var url = "http://127.0.0.1:12000/login";
+                var url = "http://127.0.0.1:10001/login";
 
                 var jsonContent = new
                 {

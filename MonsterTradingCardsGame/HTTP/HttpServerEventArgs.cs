@@ -69,6 +69,8 @@ namespace MonsterTradingCardsGame.HTTP
             {
                 case 200:
                     data = "HTTP/1.1 200 OK\n"; break;
+                case 201: 
+                    data = "HTTP/1.1 201 Created\n"; break;
                 case 400:
                     data = "HTTP/1.1 400 Bad Request\n"; break;
                 case 404:

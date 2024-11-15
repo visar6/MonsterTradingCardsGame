@@ -24,7 +24,7 @@ namespace MonsterTradingCardsGame.HTTP
             if (Active) return;
 
             Active = true;
-            listener = new(IPAddress.Parse("127.0.0.1"), 12000);
+            listener = new(IPAddress.Parse("127.0.0.1"), 10001);
             listener.Start();
 
             byte[] buf = new byte[256];

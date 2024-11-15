@@ -36,7 +36,7 @@ namespace MonsterTradingCardsGame.HTTP
                 if (i.Handle(e)) return;
             }
 
-            if (e.Path == "/register")
+            if (e.Path == "/users")
             {
                 Console.WriteLine($"[{DateTime.Now}] received 'register' request...");
 
@@ -69,12 +69,12 @@ namespace MonsterTradingCardsGame.HTTP
 
                     if (result)
                     {
-                        e.Reply(HttpStatusCode.OK, "SUCCESS: registration successfull");
+                        e.Reply(HttpStatusCode.CREATED);
                         Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' successful ...");
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: registration not successfull");
+                        e.Reply(HttpStatusCode.BAD_REQUEST);
                         Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' not successful, username already exists ...");
                     }
                 }
