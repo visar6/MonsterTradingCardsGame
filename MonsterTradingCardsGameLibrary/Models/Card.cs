@@ -1,4 +1,6 @@
-﻿namespace MonsterTradingCardsGameLibrary
+﻿using MonsterTradingCardsGameLibrary.Enums;
+
+namespace MonsterTradingCardsGameLibrary.Models
 {
     public abstract class Card
     {
@@ -10,7 +12,7 @@
 
         public ElementType ElementType { get; protected set; }
 
-        public Card(int id, string name, int damage, ElementType elementType)
+        protected Card(int id, string name, int damage, ElementType elementType)
         {
             Id = id;
             Name = name;

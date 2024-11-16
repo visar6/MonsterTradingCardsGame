@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardsGameLibrary
+namespace MonsterTradingCardsGameLibrary.Models
 {
     public class Deck
     {
@@ -13,17 +13,5 @@ namespace MonsterTradingCardsGameLibrary
         public int UserId { get; protected set; }
 
         public List<Card> Cards { get; protected set; }
-
-        public Deck(List<Card> cards)
-        {
-            Cards = cards;
-        }
-
-        public Deck(int id, int userId, List<Card> cards)
-        {
-            Id = id;
-            UserId = userId;
-            Cards = cards;
-        }
     }
 }

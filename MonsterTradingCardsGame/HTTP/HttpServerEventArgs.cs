@@ -73,6 +73,8 @@ namespace MonsterTradingCardsGame.HTTP
                     data = "HTTP/1.1 201 Created\n"; break;
                 case 400:
                     data = "HTTP/1.1 400 Bad Request\n"; break;
+                case 401:
+                    data = "HTTP/1.1 401 Unauthorized\n"; break;
                 case 404:
                     data = "HTTP/1.1 404 Not found\n"; break;
                 default:
@@ -83,14 +85,16 @@ namespace MonsterTradingCardsGame.HTTP
             {
                 data += "Content-Length: 0\n";
             }
+
             data += "Content-Type: text/plain\n\n";
+
             if (!string.IsNullOrEmpty(body)) { data += body; }
 
-            byte[] buf = Encoding.ASCII.GetBytes(data);
-            client.GetStream().Write(buf, 0, buf.Length);
+            byte[] buffer = Encoding.ASCII.GetBytes(data);
+            
+            client.GetStream().Write(buffer, 0, buffer.Length);
             client.Close();
             client.Dispose();
         }
-
     }
 }

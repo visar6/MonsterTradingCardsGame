@@ -7,13 +7,13 @@ using Npgsql;
 Console.Title = "MTCG Server";
 
 HttpServer server = new();
-server.Incoming += Svr_Incoming;
+server.Incoming += Server_Incoming;
 
-Console.WriteLine("MonsterTradindCardsGame is starting ...\n");
+Console.WriteLine("MonsterTradindCardsGame started ...\n");
 
 server.Run();
 
-static void Svr_Incoming(object sender, HttpServerEventArgs e)
+static void Server_Incoming(object sender, HttpServerEventArgs e)
 {
     Handler.HandleEvent(e);
 }

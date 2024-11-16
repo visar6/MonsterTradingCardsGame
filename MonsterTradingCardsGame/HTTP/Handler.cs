@@ -8,32 +8,33 @@ namespace MonsterTradingCardsGame.HTTP
 {
     public abstract class Handler : IHandler
     {
-        private static List<IHandler>? _Handlers = null;
+        private static List<IHandler>? handlers = null;
 
-        private static List<IHandler> _GetHandlers()
+        private static List<IHandler> GetHandlers()
         {
-            List<IHandler> rval = new();
+            List<IHandler> handlers = new();
 
-            foreach (Type i in Assembly.GetExecutingAssembly().GetTypes()
-                              .Where(m => m.IsAssignableTo(typeof(IHandler)) && (!m.IsAbstract)))
+            foreach (Type type in Assembly.GetExecutingAssembly().GetTypes()
+                              .Where(t => t.IsAssignableTo(typeof(IHandler)) && (!t.IsAbstract)))
             {
-                IHandler? h = (IHandler?)Activator.CreateInstance(i);
-                if (h != null)
+                IHandler? handler = (IHandler?)Activator.CreateInstance(type);
+
+                if (handlers != null)
                 {
-                    rval.Add(h);
+                    handlers.Add(handler);
                 }
             }
 
-            return rval;
+            return handlers;
         }
 
         public static void HandleEvent(HttpServerEventArgs e)
         {
-            _Handlers ??= _GetHandlers();
+            handlers ??= GetHandlers();
 
-            foreach (IHandler i in _Handlers)
+            foreach (IHandler handler in handlers)
             {
-                if (i.Handle(e)) return;
+                if (handler.Handle(e)) return;
             }
 
             if (e.Path == "/users")
@@ -46,12 +47,11 @@ namespace MonsterTradingCardsGame.HTTP
 
                     if (json == null)
                     {
-                        Console.WriteLine($"[{DateTime.Now}] received payload not serializable...");
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: Received bad request");
+                        Console.WriteLine($"[{DateTime.Now}] ERROR: received payload not serializable...");
+                        e.Reply(HttpStatusCode.BAD_REQUEST, "Received bad request");
                         return;
                     }
 
-                    // Extrahiere die Werte für Username und Password
                     string? username = json?.GetValueOrDefault("Username");
                     string? password = json?.GetValueOrDefault("Password");
 
@@ -59,39 +59,37 @@ namespace MonsterTradingCardsGame.HTTP
                     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                     {
                         Console.WriteLine($"[{DateTime.Now} ERROR: Username or Password null or empty...");
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: Username or Password null or empty ");
+                        e.Reply(HttpStatusCode.BAD_REQUEST, "Username or Password null or empty");
                         return;
                     }
 
                     Console.WriteLine($"[{DateTime.Now}] received username '{username}' ...");
 
-                    var result = MonsterTradingCardsGame.Helpers.DBHelper.RegisterUser(username, password);
+                    var result = MonsterTradingCardsGame.Helpers.DatabaseHelper.Register(username, password);
 
                     if (result)
                     {
                         e.Reply(HttpStatusCode.CREATED);
-                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' successful ...");
+                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' successful ...\n");
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.BAD_REQUEST);
-                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' not successful, username already exists ...");
+                        e.Reply(HttpStatusCode.BAD_REQUEST, "HTTP 400 - User already exists");
+                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' not successful, username already exists ...\n");
                     }
                 }
                 catch (JsonException jsonEx)
                 {
-                    // Fehler bei der Deserialisierung des JSON
                     Console.WriteLine($"Error in deserialization: {jsonEx.Message}");
                     e.Reply(HttpStatusCode.BAD_REQUEST, "Error in processment of request");
                 }
                 catch (Exception ex)
                 {
-                    // Allgemeine Fehlerbehandlung
-                    Console.WriteLine($"ERROR: {ex.Message}");
+                    Console.WriteLine($"Error: {ex.Message}");
                     e.Reply(HttpStatusCode.BAD_REQUEST, "Unknown error");
                 }
             }
-            else if (e.Path == "/login")
+            else if (e.Path == "/sessions") 
             {
                 Console.WriteLine($"[{DateTime.Now}] received 'login' request...");
                 
@@ -101,12 +99,11 @@ namespace MonsterTradingCardsGame.HTTP
 
                     if (json == null)
                     {
-                        Console.WriteLine($"[{DateTime.Now}] received payload not serializable...");
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: Received bad request");
+                        Console.WriteLine($"[{DateTime.Now}] ERROR: received payload not serializable...");
+                        e.Reply(HttpStatusCode.BAD_REQUEST, "Bad Request");
                         return;
                     }
 
-                    // Extrahiere die Werte für Username und Password
                     string? username = json?.GetValueOrDefault("Username");
                     string? password = json?.GetValueOrDefault("Password");
 
@@ -114,36 +111,34 @@ namespace MonsterTradingCardsGame.HTTP
                     if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
                     {
                         Console.WriteLine($"[{DateTime.Now} ERROR: Username or Password null or empty...");
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: Username or Password null or empty ");
+                        e.Reply(HttpStatusCode.BAD_REQUEST, "Username or Password null or empty");
                         return;
                     }
 
                     Console.WriteLine($"[{DateTime.Now}] received username '{username}' ...");
 
-                    var result = MonsterTradingCardsGame.Helpers.DBHelper.LoginUser(username, password);
+                    var result = MonsterTradingCardsGame.Helpers.DatabaseHelper.Login(username, password);
 
                     if (result)
                     {
-                        e.Reply(HttpStatusCode.OK, "SUCCESS: login successfull");
-                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' successful ...");
+                        string token = $"{username}-mtcgToken";
+
+                        e.Reply(HttpStatusCode.OK, token);
+                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' successful with token '{token}' ...\n");
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "ERROR: registration not successfull");
-                        Console.WriteLine($"[{DateTime.Now}] registration for username '{username}' not successful, username already exists ...");
+                        e.Reply(HttpStatusCode.UNAUTHORIZED, "HTTP 401 - Login failed");
+                        Console.WriteLine($"[{DateTime.Now}] ERROR: login for username '{username}' not successful, wrong password ...\n");
                     }
                 }
-                catch(Exception)
+                catch(Exception ex)
                 {
-
+                    Console.WriteLine($"Error: {ex.Message}");
+                    e.Reply(HttpStatusCode.BAD_REQUEST, "Unknown error");
                 }
             }
-
-
-            //e.Reply(HttpStatusCode.BAD_REQUEST);
         }
-
-        
 
         public abstract bool Handle(HttpServerEventArgs e);
     }

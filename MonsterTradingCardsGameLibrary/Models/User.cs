@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MonsterTradingCardsGameLibrary
+namespace MonsterTradingCardsGameLibrary.Models
 {
     public class User
     {
@@ -22,16 +22,5 @@ namespace MonsterTradingCardsGameLibrary
         public Deck Deck { get; protected set; }
 
         public Stats Stats { get; protected set; }
-
-        public User(int id, string username, string password, int coins, Stack stack, Deck deck, Stats stats)
-        {
-            Id = id;
-            Username = username;
-            Password = password;
-            Coins = coins;
-            Stack = stack;
-            Deck = deck;
-            Stats = stats;
-        }
     }
 }

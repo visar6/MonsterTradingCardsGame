@@ -79,28 +79,6 @@ namespace MonsterTradingCardsGameClient
             }
         }
 
-        public static string ReadPassword()
-        {
-            string password = string.Empty;
-            ConsoleKeyInfo key;
-
-            while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
-            {
-                if (key.Key == ConsoleKey.Backspace && password.Length > 0)
-                {
-                    password = password.Substring(0, password.Length - 1);
-                    Console.Write("\b \b");
-                }
-                else if (!char.IsControl(key.KeyChar))
-                {
-                    password += key.KeyChar;
-                }
-            }
-
-            Console.WriteLine();
-            return password;
-        }
-
         public static void Register()
         {
 
@@ -137,7 +115,7 @@ namespace MonsterTradingCardsGameClient
                 var jsonContent = new
                 {
                     Username = username,
-                    Password = BCryptHasher.HashPassword(password)
+                    Password = password
                 };
                 
                 var jsonString = JsonSerializer.Serialize(jsonContent);
@@ -165,19 +143,19 @@ namespace MonsterTradingCardsGameClient
         {
             using (HttpClient client = new HttpClient())
             {
-                var url = "http://127.0.0.1:10001/login";
+                var url = "http://127.0.0.1:10001/sessions";
 
                 var jsonContent = new
                 {
                     Username = username,
-                    Password = BCryptHasher.HashPassword(password)
+                    Password = password
                 };
 
                 var jsonString = JsonSerializer.Serialize(jsonContent);
 
                 var requestData = new StringContent(jsonString, Encoding.UTF8, "application/json");
 
-                HttpResponseMessage response = await client.GetAsync(url);
+                HttpResponseMessage response = await client.PostAsync(url, requestData);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -193,6 +171,28 @@ namespace MonsterTradingCardsGameClient
                     return "ERROR";
                 }
             }
+        }
+
+        public static string ReadPassword()
+        {
+            string password = string.Empty;
+            ConsoleKeyInfo key;
+
+            while ((key = Console.ReadKey(true)).Key != ConsoleKey.Enter)
+            {
+                if (key.Key == ConsoleKey.Backspace && password.Length > 0)
+                {
+                    password = password.Substring(0, password.Length - 1);
+                    Console.Write("\b \b");
+                }
+                else if (!char.IsControl(key.KeyChar))
+                {
+                    password += key.KeyChar;
+                }
+            }
+
+            Console.WriteLine();
+            return password;
         }
     }
 }
