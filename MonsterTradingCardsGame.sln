@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterTradingCardsGame", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterTradingCardsGameLibrary", "MonsterTradingCardsGameLibrary\MonsterTradingCardsGameLibrary.csproj", "{41785353-314E-4485-8B4F-F3122D3A0738}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MonsterTradingCardsGameClient", "MonsterTradingCardsGameClient\MonsterTradingCardsGameClient.csproj", "{903851F9-6953-47DF-A168-90DF4EF0E464}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonsterTradingCardsGameClient", "MonsterTradingCardsGameClient\MonsterTradingCardsGameClient.csproj", "{903851F9-6953-47DF-A168-90DF4EF0E464}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

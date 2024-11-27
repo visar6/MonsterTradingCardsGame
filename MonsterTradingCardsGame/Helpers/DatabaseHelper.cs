@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using MonsterTradingCardsGameLibrary.Models;
 
 namespace MonsterTradingCardsGame.Helpers
 {
@@ -82,6 +83,21 @@ namespace MonsterTradingCardsGame.Helpers
                 Console.WriteLine($"ERROR: Something went wrong while logging in. Message: {ex.Message}");
                 return false;
             }
+        }
+
+        internal static bool AnyCardExists(Card[] cards)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static bool CreatePackage(Card[] cards)
+        {
+            throw new NotImplementedException();
+        }
+
+        internal static object GetUser(string selectedUsername)
+        {
+            throw new NotImplementedException();
         }
     }
 }
