@@ -26,11 +26,12 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     {
                         string token = $"{username}-mtcgToken";
                         e.Reply(HttpStatusCode.OK, token);
-                        Console.WriteLine($"[{DateTime.Now}] User '{username}' logged in successfully");
+                        HandlerHelper.PrintSuccess($"[{DateTime.Now}] User '{username}' logged in successfully");
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.UNAUTHORIZED, "HTTP 401 - Login failed");
+                        e.Reply(HttpStatusCode.UNAUTHORIZED, "Login failed");
+                        HandlerHelper.PrintError($"[{DateTime.Now}] User '{username}' login failed");
                     }
                 }
                 catch (Exception ex)
@@ -38,10 +39,11 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     Console.WriteLine($"Error: {ex.Message}");
                     e.Reply(HttpStatusCode.BAD_REQUEST, "An error occurred");
                 }
+
                 return true;
             }
 
-            return false; // Dieser Handler ist nicht zuständig
+            return false;
         }
     }
 }

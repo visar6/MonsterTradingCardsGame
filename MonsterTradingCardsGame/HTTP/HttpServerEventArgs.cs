@@ -10,6 +10,11 @@ namespace MonsterTradingCardsGame.HTTP
 {
     public class HttpServerEventArgs : EventArgs
     {
+        public HttpServerEventArgs()
+        {
+            
+        }
+
         public HttpServerEventArgs(TcpClient client, string plainMessage)
         {
             this.client = client;
@@ -53,13 +58,13 @@ namespace MonsterTradingCardsGame.HTTP
 
         public string PlainMessage { get; protected set; } = string.Empty;
 
-        public virtual string Method { get; protected set; } = string.Empty;
+        public virtual string Method { get;  set; } = string.Empty;
 
-        public virtual string Path { get; protected set; } = string.Empty;
+        public virtual string Path { get;  set; } = string.Empty;
 
-        public virtual HttpHeader[] Headers { get; protected set; } = Array.Empty<HttpHeader>();
+        public virtual HttpHeader[] Headers { get; set; } = Array.Empty<HttpHeader>();
 
-        public virtual string Payload { get; protected set; } = string.Empty;
+        public virtual string Payload { get;  set; } = string.Empty;
 
         public void Reply(int status, string? body = null)
         {
@@ -81,6 +86,8 @@ namespace MonsterTradingCardsGame.HTTP
                     data = "HTTP/1.1 404 Not found\n"; break;
                 case 409:
                     data = "HTTP/1.1 409 Conflict\n"; break;
+                case 500:
+                    data = "HTTP/1.1 500 Internal Server Error\n"; break;
                 default:
                     data = $"HTTP/1.1 {status} Status unknown\n"; break;
             }

@@ -9,18 +9,27 @@ namespace MonsterTradingCardsGameLibrary.Models
 {
     public class User
     {
-        public int Id { get; protected set; }
+        public string? Id { get; set; }
 
-        public string Username { get; protected set; }
+        public string? Username { get; set; }
 
-        public string Password { get; protected set; }
+        public string? Password { get;  set; }
 
-        public int Coins { get; protected set; }
+        public string? Bio { get; set; }
 
-        public Stack Stack { get; protected set; }
+        public string? Image { get; set; }
 
-        public Deck Deck { get; protected set; }
+        public int Coins { get;  set; }
 
-        public Stats Stats { get; protected set; }
+        public Stack? Stack { get;  set; } = new Stack();
+
+        public Deck? Deck { get;  set; } = new Deck();
+
+        public Stats? Stats { get; set; } = new Stats();
+
+        public User()
+        {
+            
+        }
     }
 }

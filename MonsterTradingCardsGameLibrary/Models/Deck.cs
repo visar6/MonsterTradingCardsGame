@@ -8,10 +8,15 @@ namespace MonsterTradingCardsGameLibrary.Models
 {
     public class Deck
     {
-        public int Id { get; protected set; }
+        public string Id { get;  set; }
 
-        public int UserId { get; protected set; }
+        public string UserId { get;  set; }
 
-        public List<Card> Cards { get; protected set; }
+        public List<Card> Cards { get;  set; }
+
+        public Deck()
+        {
+                
+        }
     }
 }

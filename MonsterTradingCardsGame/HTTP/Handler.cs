@@ -34,7 +34,7 @@ namespace MonsterTradingCardsGame.HTTP
 
             foreach (IHandler handler in handlers)
             {
-                if (handler.Handle(e)) return; // Anfrage wurde verarbeitet
+                if (handler.Handle(e)) return;
             }
 
             e.Reply(HttpStatusCode.NOT_FOUND, "Route not found");

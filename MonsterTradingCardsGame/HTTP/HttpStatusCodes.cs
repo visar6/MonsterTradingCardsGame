@@ -15,5 +15,6 @@ namespace MonsterTradingCardsGame.HTTP
         public const int FORBIDDEN = 403;
         public const int NOT_FOUND = 404;
         public const int CONFLICT = 409;
+        public const int INTERNAL_SERVER_ERROR = 500;
     }
 }

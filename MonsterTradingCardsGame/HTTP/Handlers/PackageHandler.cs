@@ -1,64 +1,90 @@
 ﻿using MonsterTradingCardsGame.Helpers;
+using MonsterTradingCardsGame.HTTP;
+using MonsterTradingCardsGameLibrary.Enums;
 using MonsterTradingCardsGameLibrary.Models;
 using System.Text.Json;
 
-namespace MonsterTradingCardsGame.HTTP.Handlers
+public class PackageHandler : Handler
 {
-    public class PackageHandler : Handler
+    public override bool Handle(HttpServerEventArgs e)
     {
-        public override bool Handle(HttpServerEventArgs e)
+        if (e.Path == "/packages" && e.Method == "POST")
         {
-            if (e.Path == "/packages" && e.Method == "POST")
+            Console.WriteLine($"[{DateTime.Now}] Received 'create package' request...");
+
+            try
             {
-                Console.WriteLine($"[{DateTime.Now}] received 'create package' request...");
-                try
+                var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))?.Value;
+
+                if (token != "Bearer admin-mtcgToken")
                 {
-                    var json = JsonSerializer.Deserialize<Dictionary<string, object>>(e.Payload);
-                    if (json == null)
-                    {
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid payload");
-                        return true;
-                    }
+                    e.Reply(HttpStatusCode.FORBIDDEN, "Only admin can create packages");
+                    return true;
+                }
 
-                    string? token = json.GetValueOrDefault("Authorization")?.ToString();
-                    if (token != "admin-mtcgToken")
-                    {
-                        e.Reply(HttpStatusCode.FORBIDDEN, "Only admin can create packages");
-                        return true;
-                    }
+                var cards = JsonSerializer.Deserialize<List<Card>>(e.Payload);
+                if (cards == null || cards.Count == 0)
+                {
+                    e.Reply(HttpStatusCode.BAD_REQUEST, "No cards provided");
+                    return true;
+                }
 
-                    Card[]? cards = JsonSerializer.Deserialize<Card[]>(json.GetValueOrDefault("Cards")?.ToString());
-                    if (cards == null || cards.Length == 0)
+                foreach (var card in cards)
+                {
+                    if (card.Name.Contains("Spell"))
                     {
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "No cards provided");
-                        return true;
-                    }
-
-                    if (DatabaseHelper.AnyCardExists(cards))
-                    {
-                        e.Reply(HttpStatusCode.CONFLICT, "At least one card already exists");
-                        return true;
-                    }
-
-                    if (DatabaseHelper.CreatePackage(cards))
-                    {
-                        e.Reply(HttpStatusCode.CREATED);
-                        Console.WriteLine($"[{DateTime.Now}] Package created successfully");
+                        card.CardType = "Spell";
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.BAD_REQUEST, "Failed to create package");
+                        card.CardType = "Monster";
+                    }
+
+                    if (card.Name.Contains("Water"))
+                    {
+                        card.ElementType = ElementType.Water;
+                    }
+                    else if (card.Name.Contains("Fire"))
+                    {
+                        card.ElementType = ElementType.Fire;
+                    }
+                    else
+                    {
+                        card.ElementType = ElementType.Normal;
                     }
                 }
-                catch (Exception ex)
+
+                if (cards.GroupBy(c => c.Id).Any(g => g.Count() > 1))
                 {
-                    Console.WriteLine($"Error: {ex.Message}");
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "An error occurred");
+                    e.Reply(HttpStatusCode.BAD_REQUEST, "Duplicate card IDs are not allowed");
+                    return true;
                 }
-                return true;
+
+                if (DatabaseHelper.CreatePackage(cards))
+                {
+                    e.Reply(HttpStatusCode.CREATED);
+                    HandlerHelper.PrintSuccess($"[{DateTime.Now}] Package created successfully");
+                }
+                else
+                {
+                    e.Reply(HttpStatusCode.BAD_REQUEST, "Failed to create package");
+                    HandlerHelper.PrintError($"[{DateTime.Now}] Failed to create package");
+                }
+            }
+            catch (JsonException jsonEx)
+            {
+                Console.WriteLine($"JSON Error: {jsonEx.Message}");
+                e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid JSON payload");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error: {ex.Message}");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "An internal error occurred");
             }
 
-            return false; // Dieser Handler ist nicht zuständig
+            return true;
         }
+
+        return false;
     }
 }
