@@ -44,7 +44,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                 var tradingDeal = JsonSerializer.Deserialize<TradingDeal>(e.Payload);
                 if (tradingDeal == null || string.IsNullOrEmpty(tradingDeal.CardId))
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid trading deal format");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                     return;
                 }
 
@@ -57,22 +57,22 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
                 if (!DatabaseHelper.UserOwnsCard(user.Id, tradingDeal.CardId))
                 {
-                    e.Reply(HttpStatusCode.FORBIDDEN, "You do not own this card");
+                    e.Reply(HttpStatusCode.FORBIDDEN);
                     return;
                 }
 
                 if (DatabaseHelper.CreateTradingDeal(tradingDeal))
                 {
-                    e.Reply(HttpStatusCode.CREATED, "Trading deal created successfully");
+                    e.Reply(HttpStatusCode.CREATED);
                 }
                 else
                 {
-                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to create trading deal");
+                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
                 }
             }
             catch (JsonException)
             {
-                e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid JSON format");
+                e.Reply(HttpStatusCode.BAD_REQUEST);
             }
         }
 
@@ -91,23 +91,23 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
             if (!DatabaseHelper.TradingDealExists(tradingDealId))
             {
-                e.Reply(HttpStatusCode.NOT_FOUND, "Trading deal not found");
+                e.Reply(HttpStatusCode.NOT_FOUND);
                 return;
             }
 
             if (!DatabaseHelper.UserOwnsTradingDeal(user.Id, tradingDealId))
             {
-                e.Reply(HttpStatusCode.FORBIDDEN, "You are not the owner of this trading deal");
+                e.Reply(HttpStatusCode.FORBIDDEN);
                 return;
             }
 
             if (DatabaseHelper.DeleteTradingDeal(tradingDealId, user.Id))
             {
-                e.Reply(HttpStatusCode.OK, "Trading deal deleted successfully");
+                e.Reply(HttpStatusCode.OK);
             }
             else
             {
-                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to delete trading deal");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -120,43 +120,43 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
             if (!DatabaseHelper.TradingDealExists(tradingDealId))
             {
-                e.Reply(HttpStatusCode.NOT_FOUND, "Trading deal not found");
+                e.Reply(HttpStatusCode.NOT_FOUND);
                 return;
             }
 
             var offeredCardId = JsonSerializer.Deserialize<string>(e.Payload);
             if (string.IsNullOrEmpty(offeredCardId) || !DatabaseHelper.UserOwnsCard(user.Id, offeredCardId))
             {
-                e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid offered card");
+                e.Reply(HttpStatusCode.BAD_REQUEST);
                 return;
             }
 
             TradingDeal? deal = DatabaseHelper.GetTradingDeal(tradingDealId);
             if (deal == null)
             {
-                e.Reply(HttpStatusCode.NOT_FOUND, "Trading deal no longer exists");
+                e.Reply(HttpStatusCode.NOT_FOUND);
                 return;
             }
 
             if (deal.UserId == user.Id)
             {
-                e.Reply(HttpStatusCode.FORBIDDEN, "You cannot trade with yourself");
+                e.Reply(HttpStatusCode.FORBIDDEN);
                 return;
             }
 
             if (!DatabaseHelper.CardMeetsTradingRequirements(offeredCardId, deal))
             {
-                e.Reply(HttpStatusCode.BAD_REQUEST, "Your card does not meet the trade requirements");
+                e.Reply(HttpStatusCode.BAD_REQUEST);
                 return;
             }
 
             if (DatabaseHelper.ExecuteTrade(user.Id, offeredCardId, deal))
             {
-                e.Reply(HttpStatusCode.OK, "Trade successful");
+                e.Reply(HttpStatusCode.OK);
             }
             else
             {
-                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Trade execution failed");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
 
@@ -165,14 +165,14 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
             var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))?.Value.Split(" ")[1];
             if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
             {
-                e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                e.Reply(HttpStatusCode.UNAUTHORIZED);
                 return null;
             }
 
             string? username = DatabaseHelper.GetUsernameFromToken(token);
             if (string.IsNullOrEmpty(username))
             {
-                e.Reply(HttpStatusCode.UNAUTHORIZED, "Unauthorized: Invalid token");
+                e.Reply(HttpStatusCode.UNAUTHORIZED);
                 return null;
             }
 

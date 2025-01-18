@@ -89,7 +89,7 @@ public class DeckHandler : Handler
                 var cardIds = JsonSerializer.Deserialize<List<string>>(e.Payload);
                 if (cardIds == null || cardIds.Count != 4)
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "HTTP 400 - Bad request");
+                    e.Reply(HttpStatusCode.BAD_REQUEST, "Bad request");
                     HandlerHelper.PrintError($"[{DateTime.Now}] User '{username}' failed to configure a deck. Reason: Invalid card count");
                     return true;
                 }
@@ -97,7 +97,7 @@ public class DeckHandler : Handler
                 var userCards = DatabaseHelper.GetUserStack(username);
                 if (!cardIds.All(id => userCards.Any(card => card.Id == id)))
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "One or more cards are invalid or not owned by the user");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                     HandlerHelper.PrintError($"[{DateTime.Now}] User '{username}' failed. Reason:One or more cards are invalid or not owned by the user");
                     return true;
                 }

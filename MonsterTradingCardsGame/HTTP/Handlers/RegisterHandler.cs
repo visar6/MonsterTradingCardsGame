@@ -54,7 +54,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                 }
                 else
                 {
-                    e.Reply(HttpStatusCode.NOT_FOUND, "User not found");
+                    e.Reply(HttpStatusCode.NOT_FOUND);
                     HandlerHelper.PrintError($"[{DateTime.Now}] User '{username}' not found.");
                 }
                 return true;

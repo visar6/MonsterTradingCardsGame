@@ -26,7 +26,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     var username = DatabaseHelper.GetUsernameFromToken(token);
                     if (string.IsNullOrEmpty(username))
                     {
-                        e.Reply(HttpStatusCode.UNAUTHORIZED, "User not found");
+                        e.Reply(HttpStatusCode.UNAUTHORIZED);
                         HandlerHelper.PrintError($"[{DateTime.Now}] User not found for token: {token}");
                         return true;
                     }
@@ -48,7 +48,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     }
                     else
                     {
-                        e.Reply(HttpStatusCode.NOT_FOUND, "Stats not found");
+                        e.Reply(HttpStatusCode.NOT_FOUND);
                         HandlerHelper.PrintError($"[{DateTime.Now}] Stats not found for user '{username}'");
                     }
                 }

@@ -212,6 +212,45 @@ namespace MonsterTradingCardsGame.Helpers
             }
         }
 
+        internal static User? GetAuthenticatedUser(string token)
+        {
+            if (string.IsNullOrEmpty(token))
+                return null;
+
+            const string query = "SELECT id, username, coins FROM \"user\" WHERE token = @token";
+
+            try
+            {
+                using (var connection = GetConnection())
+                {
+                    using (var command = new NpgsqlCommand(query, connection))
+                    {
+                        command.Parameters.AddWithValue("token", token);
+
+                        using (var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read())
+                            {
+                                return new User
+                                {
+                                    Id = reader.GetString(reader.GetOrdinal("id")),
+                                    Username = reader.GetString(reader.GetOrdinal("username")),
+                                    Coins = reader.GetInt32(reader.GetOrdinal("coins"))
+                                };
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"ERROR: Failed to authenticate user. Message: {ex.Message}");
+            }
+
+            return null;
+        }
+
+
         public static bool IsValidToken(string token)
         {
             string query = "SELECT COUNT(*) FROM \"user\" WHERE token = @token";

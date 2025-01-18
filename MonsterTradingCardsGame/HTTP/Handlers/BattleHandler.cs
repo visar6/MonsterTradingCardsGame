@@ -68,7 +68,6 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                 else
                 {
                     waitingPlayers.Enqueue(player);
-                    e.Reply(202, "Waiting for an opponent...");
                 }
             }
         }

@@ -17,7 +17,7 @@ public class CardsHandler : Handler
 
                 if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
                 {
-                    e.Reply(HttpStatusCode.UNAUTHORIZED, "HTTP 401 - Unauthorized");
+                    e.Reply(HttpStatusCode.UNAUTHORIZED, "Unauthorized");
                     HandlerHelper.PrintError($"[{DateTime.Now}] Returned cards for user denied");
                     return true;
                 }
