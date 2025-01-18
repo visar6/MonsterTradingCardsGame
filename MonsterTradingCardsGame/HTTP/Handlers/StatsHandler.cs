@@ -5,6 +5,13 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 {
     public class StatsHandler : Handler
     {
+        private readonly IDatabaseHelper databaseHelper;
+
+        public StatsHandler(IDatabaseHelper databaseHelper)
+        {
+            this.databaseHelper = databaseHelper;
+        }
+
         public override bool Handle(HttpServerEventArgs e)
         {
             if (e.Path == "/stats" && e.Method == "GET")
@@ -16,14 +23,14 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                         ?.Value.Split(" ")[1];
 
-                    if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                    if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                     {
-                        e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                        e.Reply(HttpStatusCode.UNAUTHORIZED);
                         HandlerHelper.PrintError($"[{DateTime.Now}] Invalid or missing token");
                         return true;
                     }
 
-                    var username = DatabaseHelper.GetUsernameFromToken(token);
+                    var username = databaseHelper.GetUsernameFromToken(token);
                     if (string.IsNullOrEmpty(username))
                     {
                         e.Reply(HttpStatusCode.UNAUTHORIZED);
@@ -31,18 +38,19 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                         return true;
                     }
 
-                    var stats = DatabaseHelper.GetUserStats(username);
+                    var user = databaseHelper.GetUser(username);
+                    var stats = databaseHelper.GetUserStats(user.Id);
 
                     if (stats != null)
                     {
-                        if (stats.Elo > 0 || stats.Wins > 0 || stats.Losses > 0)
+                        if (stats.Elo >= 0 || stats.Wins >= 0 || stats.Losses >= 0)
                         {
                             e.Reply(HttpStatusCode.OK, JsonSerializer.Serialize(stats));
                             HandlerHelper.PrintSuccess($"[{DateTime.Now}] Returned stats for user '{username}': Elo={stats.Elo}, Wins={stats.Wins}, Losses={stats.Losses}");
                         }
                         else
                         {
-                            e.Reply(HttpStatusCode.OK, "No statistics available for the user");
+                            e.Reply(HttpStatusCode.OK);
                             HandlerHelper.PrintWarning($"[{DateTime.Now}] User '{username}' has no statistics (all values are 0)");
                         }
                     }

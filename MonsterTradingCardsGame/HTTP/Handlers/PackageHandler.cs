@@ -6,6 +6,13 @@ using System.Text.Json;
 
 public class PackageHandler : Handler
 {
+    private readonly IDatabaseHelper databaseHelper;
+
+    public PackageHandler(IDatabaseHelper databaseHelper)
+    {
+        this.databaseHelper = databaseHelper;
+    }
+
     public override bool Handle(HttpServerEventArgs e)
     {
         if (e.Path == "/packages" && e.Method == "POST")
@@ -18,14 +25,14 @@ public class PackageHandler : Handler
 
                 if (token != "Bearer admin-mtcgToken")
                 {
-                    e.Reply(HttpStatusCode.FORBIDDEN, "Only admin can create packages");
+                    e.Reply(HttpStatusCode.FORBIDDEN);
                     return true;
                 }
 
                 var cards = JsonSerializer.Deserialize<List<Card>>(e.Payload);
                 if (cards == null || cards.Count == 0)
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "No cards provided");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                     return true;
                 }
 
@@ -56,30 +63,30 @@ public class PackageHandler : Handler
 
                 if (cards.GroupBy(c => c.Id).Any(g => g.Count() > 1))
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "Duplicate card IDs are not allowed");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                     return true;
                 }
 
-                if (DatabaseHelper.CreatePackage(cards))
+                if (databaseHelper.CreatePackage(cards))
                 {
                     e.Reply(HttpStatusCode.CREATED);
                     HandlerHelper.PrintSuccess($"[{DateTime.Now}] Package created successfully");
                 }
                 else
                 {
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "Failed to create package");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                     HandlerHelper.PrintError($"[{DateTime.Now}] Failed to create package");
                 }
             }
             catch (JsonException jsonEx)
             {
                 Console.WriteLine($"JSON Error: {jsonEx.Message}");
-                e.Reply(HttpStatusCode.BAD_REQUEST, "Invalid JSON payload");
+                e.Reply(HttpStatusCode.BAD_REQUEST);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error: {ex.Message}");
-                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "An internal error occurred");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return true;

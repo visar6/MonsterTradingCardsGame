@@ -5,6 +5,13 @@ using System.Text.Json;
 
 public class DeckHandler : Handler
 {
+    private readonly IDatabaseHelper databaseHelper;
+
+    public DeckHandler(IDatabaseHelper databaseHelper)
+    {
+        this.databaseHelper = databaseHelper;
+    }
+
     public override bool Handle(HttpServerEventArgs e)
     {
         if (e.Path.StartsWith("/deck") && e.Method == "GET")
@@ -16,20 +23,20 @@ public class DeckHandler : Handler
                 var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                     ?.Value.Split(" ")[1];
 
-                if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                 {
-                    e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                    e.Reply(HttpStatusCode.UNAUTHORIZED);
                     return true;
                 }
 
-                var username = DatabaseHelper.GetUsernameFromToken(token);
+                var username = databaseHelper.GetUsernameFromToken(token);
                 if (string.IsNullOrEmpty(username))
                 {
                     e.Reply(HttpStatusCode.UNAUTHORIZED, "User not found");
                     return true;
                 }
 
-                var userDeck = DatabaseHelper.GetUserDeck(username);
+                var userDeck = databaseHelper.GetUserDeck(username);
 
                 if (userDeck == null || userDeck.Count == 0)
                 {
@@ -58,7 +65,7 @@ public class DeckHandler : Handler
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR: {ex.Message}");
-                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "An internal error occurred");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return true;
@@ -73,13 +80,13 @@ public class DeckHandler : Handler
                 var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                     ?.Value.Split(" ")[1];
 
-                if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                 {
-                    e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                    e.Reply(HttpStatusCode.UNAUTHORIZED);
                     return true;
                 }
 
-                var username = DatabaseHelper.GetUsernameFromToken(token);
+                var username = databaseHelper.GetUsernameFromToken(token);
                 if (string.IsNullOrEmpty(username))
                 {
                     e.Reply(HttpStatusCode.UNAUTHORIZED, "User not found");
@@ -94,7 +101,7 @@ public class DeckHandler : Handler
                     return true;
                 }
 
-                var userCards = DatabaseHelper.GetUserStack(username);
+                var userCards = databaseHelper.GetUserStack(username);
                 if (!cardIds.All(id => userCards.Any(card => card.Id == id)))
                 {
                     e.Reply(HttpStatusCode.BAD_REQUEST);
@@ -102,9 +109,9 @@ public class DeckHandler : Handler
                     return true;
                 }
 
-                if (!DatabaseHelper.UpdateUserDeck(username, cardIds))
+                if (!databaseHelper.UpdateUserDeck(username, cardIds))
                 {
-                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to configure deck");
+                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
                     return true;
                 }
 
@@ -114,13 +121,11 @@ public class DeckHandler : Handler
             catch (Exception ex)
             {
                 Console.WriteLine($"ERROR: {ex.Message}");
-                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "An internal error occurred");
+                e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
 
             return true;
         }
-
-
 
         return false; 
     }
@@ -145,5 +150,3 @@ public class DeckHandler : Handler
         return queryParams;
     }
 }
-
-

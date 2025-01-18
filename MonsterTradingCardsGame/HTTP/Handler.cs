@@ -9,35 +9,47 @@ namespace MonsterTradingCardsGame.HTTP
     public abstract class Handler : IHandler
     {
         private static List<IHandler>? handlers = null;
-
-        private static List<IHandler> GetHandlers()
+        private static List<IHandler> GetHandlers(IDatabaseHelper databaseHelper)
         {
             List<IHandler> handlers = new();
 
             foreach (Type type in Assembly.GetExecutingAssembly().GetTypes()
-                              .Where(t => t.IsAssignableTo(typeof(IHandler)) && (!t.IsAbstract)))
+                              .Where(t => typeof(IHandler).IsAssignableFrom(t) && !t.IsAbstract))
             {
-                IHandler? handler = (IHandler?)Activator.CreateInstance(type);
+                ConstructorInfo? ctor = type.GetConstructors()
+                    .FirstOrDefault(c => c.GetParameters().Length == 1 && c.GetParameters()[0].ParameterType == typeof(IDatabaseHelper));
 
-                if (handlers != null)
+                if (ctor != null)
                 {
-                    handlers.Add(handler);
+                    IHandler? handler = (IHandler?)ctor.Invoke(new object[] { databaseHelper });
+                    if (handler != null)
+                    {
+                        handlers.Add(handler);
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping {type.Name} - No suitable constructor found.");
                 }
             }
 
             return handlers;
         }
 
+
         public static void HandleEvent(HttpServerEventArgs e)
         {
-            handlers ??= GetHandlers();
+            handlers ??= GetHandlers(new DatabaseHelper());
 
-            foreach (IHandler handler in handlers)
+            ThreadPool.QueueUserWorkItem(_ =>
             {
-                if (handler.Handle(e)) return;
-            }
+                foreach (IHandler handler in handlers)
+                {
+                    if (handler.Handle(e)) return;
+                }
 
-            e.Reply(HttpStatusCode.NOT_FOUND, "Route not found");
+                e.Reply(HttpStatusCode.NOT_FOUND, "Route not found");
+            });
         }
 
         public abstract bool Handle(HttpServerEventArgs e);

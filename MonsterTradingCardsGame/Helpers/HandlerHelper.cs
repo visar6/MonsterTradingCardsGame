@@ -9,18 +9,12 @@ namespace MonsterTradingCardsGame.Helpers
 {
     public static class HandlerHelper
     {
-        public static bool ValidateAuthorization(HttpServerEventArgs e)
+        public static string CapitalizeFirstLetter(string input)
         {
-            var token = e.Headers
-                .FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
-                ?.Value.Split(" ")[1];
+            if (string.IsNullOrEmpty(input))
+                return input;
 
-            if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
-            {
-                e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
-                return false;             }
-
-            return true;
+            return char.ToUpper(input[0]) + input.Substring(1).ToLower();
         }
 
         public static void PrintSuccess(string message)

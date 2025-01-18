@@ -9,6 +9,13 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 {
     public class TradingHandler : Handler
     {
+        private readonly IDatabaseHelper databaseHelper;
+
+        public TradingHandler(IDatabaseHelper databaseHelper)
+        {
+            this.databaseHelper = databaseHelper;
+        }
+
         public override bool Handle(HttpServerEventArgs e)
         {
             if (e.Method == "POST" && e.Path == "/tradings")
@@ -55,18 +62,20 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
                 tradingDeal.UserId = user.Id;
 
-                if (!DatabaseHelper.UserOwnsCard(user.Id, tradingDeal.CardId))
+                if (!databaseHelper.UserOwnsCard(user.Id, tradingDeal.CardId))
                 {
                     e.Reply(HttpStatusCode.FORBIDDEN);
                     return;
                 }
 
-                if (DatabaseHelper.CreateTradingDeal(tradingDeal))
+                if (databaseHelper.CreateTradingDeal(tradingDeal))
                 {
-                    e.Reply(HttpStatusCode.CREATED);
+                    HandlerHelper.PrintSuccess($"[{DateTime.Now}] Trading deal successfully created.");
+                    e.Reply(HttpStatusCode.OK);
                 }
                 else
                 {
+                    HandlerHelper.PrintError($"[{DateTime.Now}] Error creating trading deal.");
                     e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
                 }
             }
@@ -78,8 +87,9 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
         private void GetTradingDeals(HttpServerEventArgs e)
         {
-            List<TradingDeal> deals = DatabaseHelper.GetAllTradingDeals();
+            List<TradingDeal> deals = databaseHelper.GetAllTradingDeals();
             e.Reply(HttpStatusCode.OK, JsonSerializer.Serialize(deals));
+            HandlerHelper.PrintSuccess($"[{DateTime.Now}] Successfully retrieved all trading deals.");
         }
 
         private void DeleteTradingDeal(HttpServerEventArgs e)
@@ -89,24 +99,26 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
             string tradingDealId = e.Path.Split('/').Last();
 
-            if (!DatabaseHelper.TradingDealExists(tradingDealId))
+            if (!databaseHelper.TradingDealExists(tradingDealId))
             {
                 e.Reply(HttpStatusCode.NOT_FOUND);
                 return;
             }
 
-            if (!DatabaseHelper.UserOwnsTradingDeal(user.Id, tradingDealId))
+            if (!databaseHelper.UserOwnsTradingDeal(user.Id, tradingDealId))
             {
                 e.Reply(HttpStatusCode.FORBIDDEN);
                 return;
             }
 
-            if (DatabaseHelper.DeleteTradingDeal(tradingDealId, user.Id))
+            if (databaseHelper.DeleteTradingDeal(tradingDealId, user.Id))
             {
+                HandlerHelper.PrintSuccess($"[{DateTime.Now}] Trading deal {tradingDealId} successfully deleted.");
                 e.Reply(HttpStatusCode.OK);
             }
             else
             {
+                HandlerHelper.PrintError($"[{DateTime.Now}] Error deleting trading deal {tradingDealId}.");
                 e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
@@ -118,20 +130,20 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 
             string tradingDealId = e.Path.Split('/').Last();
 
-            if (!DatabaseHelper.TradingDealExists(tradingDealId))
+            if (!databaseHelper.TradingDealExists(tradingDealId))
             {
                 e.Reply(HttpStatusCode.NOT_FOUND);
                 return;
             }
 
             var offeredCardId = JsonSerializer.Deserialize<string>(e.Payload);
-            if (string.IsNullOrEmpty(offeredCardId) || !DatabaseHelper.UserOwnsCard(user.Id, offeredCardId))
+            if (string.IsNullOrEmpty(offeredCardId) || !databaseHelper.UserOwnsCard(user.Id, offeredCardId))
             {
                 e.Reply(HttpStatusCode.BAD_REQUEST);
                 return;
             }
 
-            TradingDeal? deal = DatabaseHelper.GetTradingDeal(tradingDealId);
+            TradingDeal? deal = databaseHelper.GetTradingDeal(tradingDealId);
             if (deal == null)
             {
                 e.Reply(HttpStatusCode.NOT_FOUND);
@@ -144,18 +156,20 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                 return;
             }
 
-            if (!DatabaseHelper.CardMeetsTradingRequirements(offeredCardId, deal))
+            if (!databaseHelper.CardMeetsTradingRequirements(offeredCardId, deal))
             {
                 e.Reply(HttpStatusCode.BAD_REQUEST);
                 return;
             }
 
-            if (DatabaseHelper.ExecuteTrade(user.Id, offeredCardId, deal))
+            if (databaseHelper.ExecuteTrade(user.Id, offeredCardId, deal))
             {
+                HandlerHelper.PrintSuccess($"[{DateTime.Now}] Trade successfully executed.");
                 e.Reply(HttpStatusCode.OK);
             }
             else
             {
+                HandlerHelper.PrintError($"[{DateTime.Now}] Error executing trade.");
                 e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
             }
         }
@@ -163,20 +177,20 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
         private User? GetUserFromRequest(HttpServerEventArgs e)
         {
             var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))?.Value.Split(" ")[1];
-            if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+            if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
             {
                 e.Reply(HttpStatusCode.UNAUTHORIZED);
                 return null;
             }
 
-            string? username = DatabaseHelper.GetUsernameFromToken(token);
+            string? username = databaseHelper.GetUsernameFromToken(token);
             if (string.IsNullOrEmpty(username))
             {
                 e.Reply(HttpStatusCode.UNAUTHORIZED);
                 return null;
             }
 
-            return DatabaseHelper.GetUser(username);
+            return databaseHelper.GetUser(username);
         }
     }
 }

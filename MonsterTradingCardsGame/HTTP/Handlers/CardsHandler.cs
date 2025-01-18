@@ -4,6 +4,13 @@ using System.Text.Json;
 
 public class CardsHandler : Handler
 {
+    private readonly IDatabaseHelper databaseHelper;
+
+    public CardsHandler(IDatabaseHelper databaseHelper)
+    {
+        this.databaseHelper = databaseHelper;
+    }
+
     public override bool Handle(HttpServerEventArgs e)
     {
         if (e.Path == "/cards" && e.Method == "GET")
@@ -15,21 +22,21 @@ public class CardsHandler : Handler
                 var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                     ?.Value.Split(" ")[1];
 
-                if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                 {
                     e.Reply(HttpStatusCode.UNAUTHORIZED, "Unauthorized");
                     HandlerHelper.PrintError($"[{DateTime.Now}] Returned cards for user denied");
                     return true;
                 }
 
-                var username = DatabaseHelper.GetUsernameFromToken(token);
+                var username = databaseHelper.GetUsernameFromToken(token);
                 if (string.IsNullOrEmpty(username))
                 {
                     e.Reply(HttpStatusCode.UNAUTHORIZED, "User not found");
                     return true;
                 }
 
-                var userCards = DatabaseHelper.GetUserCards(username);
+                var userCards = databaseHelper.GetUserCards(username);
 
                 var response = JsonSerializer.Serialize(userCards);
                 e.Reply(HttpStatusCode.OK, response);

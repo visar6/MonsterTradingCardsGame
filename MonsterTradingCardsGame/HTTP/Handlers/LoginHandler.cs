@@ -5,6 +5,13 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 {
     public class LoginHandler : Handler
     {
+        private readonly IDatabaseHelper databaseHelper;
+
+        public LoginHandler(IDatabaseHelper databaseHelper)
+        {
+            this.databaseHelper = databaseHelper;
+        }
+
         public override bool Handle(HttpServerEventArgs e)
         {
             if (e.Path == "/sessions" && e.Method == "POST")
@@ -22,7 +29,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     string username = json["Username"];
                     string password = json["Password"];
 
-                    if (DatabaseHelper.Login(username, password))
+                    if (databaseHelper.Login(username, password))
                     {
                         string token = $"{username}-mtcgToken";
                         e.Reply(HttpStatusCode.OK, token);
@@ -37,7 +44,7 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                 catch (Exception ex)
                 {
                     Console.WriteLine($"Error: {ex.Message}");
-                    e.Reply(HttpStatusCode.BAD_REQUEST, "An error occurred");
+                    e.Reply(HttpStatusCode.BAD_REQUEST);
                 }
 
                 return true;

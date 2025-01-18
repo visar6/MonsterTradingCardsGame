@@ -6,6 +6,13 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
 {
     public class ScoreboardHandler : Handler
     {
+        private readonly IDatabaseHelper databaseHelper;
+
+        public ScoreboardHandler(IDatabaseHelper databaseHelper)
+        {
+            this.databaseHelper = databaseHelper;
+        }
+
         public override bool Handle(HttpServerEventArgs e)
         {
             if (e.Path == "/scoreboard" && e.Method == "GET")
@@ -17,13 +24,13 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                     var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))
                         ?.Value.Split(" ")[1];
 
-                    if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                    if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                     {
-                        e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                        e.Reply(HttpStatusCode.UNAUTHORIZED);
                         return true;
                     }
 
-                    var scoreboard = DatabaseHelper.GetScoreboard();
+                    var scoreboard = databaseHelper.GetScoreboard();
 
                     if (scoreboard != null && scoreboard.Count > 0)
                     {
@@ -33,17 +40,17 @@ namespace MonsterTradingCardsGame.HTTP.Handlers
                             .ToList();
 
                         e.Reply(HttpStatusCode.OK, JsonSerializer.Serialize(top5));
-                        Console.WriteLine($"[{DateTime.Now}] Returned Top 5 scoreboard based on Elo");
+                        HandlerHelper.PrintSuccess($"[{DateTime.Now}] Returned Top 5 scoreboard based on Elo");
                     }
                     else
                     {
                         e.Reply(HttpStatusCode.OK, "No players found in the scoreboard");
-                        Console.WriteLine($"[{DateTime.Now}] Scoreboard is empty");
+                        HandlerHelper.PrintError($"[{DateTime.Now}] Scoreboard is empty");
                     }
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"ERROR: {ex.Message}");
+                    HandlerHelper.PrintError($"ERROR: {ex.Message}");
                     e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "An internal error occurred");
                 }
 

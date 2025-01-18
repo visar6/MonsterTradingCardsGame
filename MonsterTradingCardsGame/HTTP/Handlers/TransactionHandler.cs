@@ -5,6 +5,13 @@ using System.Text.Json;
 
 public class TransactionHandler : Handler
 {
+    private readonly IDatabaseHelper databaseHelper;
+
+    public TransactionHandler(IDatabaseHelper databaseHelper)
+    {
+        this.databaseHelper = databaseHelper;
+    }
+
     public override bool Handle(HttpServerEventArgs e)
     {
         if (e.Path == "/transactions/packages" && e.Method == "POST")
@@ -15,23 +22,23 @@ public class TransactionHandler : Handler
             {
                 var token = e.Headers.FirstOrDefault(h => h.Name.Equals("Authorization", StringComparison.OrdinalIgnoreCase))?.Value.Split(" ")[1];
 
-                if (string.IsNullOrEmpty(token) || !DatabaseHelper.IsValidToken(token))
+                if (string.IsNullOrEmpty(token) || !databaseHelper.IsValidToken(token))
                 {
-                    e.Reply(HttpStatusCode.UNAUTHORIZED, "Invalid or missing token");
+                    e.Reply(HttpStatusCode.UNAUTHORIZED);
                     return true;
                 }
 
-                var username = DatabaseHelper.GetUsernameFromToken(token);
+                var username = databaseHelper.GetUsernameFromToken(token);
                 if (string.IsNullOrEmpty(username))
                 {
                     e.Reply(HttpStatusCode.UNAUTHORIZED, "User not found");
                     return true;
                 }
 
-                var user = DatabaseHelper.GetUser(username);
+                var user = databaseHelper.GetUser(username);
                 if (user == null)
                 {
-                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to retrieve user data");
+                    e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR);
                     return true;
                 }
 
@@ -43,7 +50,7 @@ public class TransactionHandler : Handler
                     return true;
                 }
 
-                var package = DatabaseHelper.GetNextAvailablePackage();
+                var package = databaseHelper.GetNextAvailablePackage();
                 if (package == null)
                 {
                     e.Reply(HttpStatusCode.NOT_FOUND, "No packages available");
@@ -52,15 +59,15 @@ public class TransactionHandler : Handler
                     return true;
                 }
 
-                var success = DatabaseHelper.AddCardsToUserStack(user.Id, package.Cards);
+                var success = databaseHelper.AddCardsToUserStack(user.Id, package.Cards);
                 if (!success)
                 {
                     e.Reply(HttpStatusCode.INTERNAL_SERVER_ERROR, "Failed to add cards to user stack");
                     return true;
                 }
 
-                DatabaseHelper.DeletePackage(package.Id);
-                DatabaseHelper.UpdateUserCoins(user.Id, user.Coins - packagePrice);
+                databaseHelper.DeletePackage(package.Id);
+                databaseHelper.UpdateUserCoins(user.Id, user.Coins - packagePrice);
 
                 e.Reply(HttpStatusCode.CREATED);
                 HandlerHelper.PrintSuccess($"[{DateTime.Now}] User '{username}' acquired package with ID '{package.Id}'");
