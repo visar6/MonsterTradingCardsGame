@@ -62,7 +62,7 @@ namespace MonsterTradingCardsGameUnitTest
             var player1 = new User { Id = "1", Username = "Player1", Deck = new Deck() };
             var player2 = new User { Id = "2", Username = "Player2", Deck = new Deck() };
 
-            player1.Deck.Cards = new List<Card>(); // Spieler 1 verliert
+            player1.Deck.Cards = new List<Card>();
             player2.Deck.Cards = new List<Card> { new Card { Name = "WaterGoblin", ElementType = ElementType.Water, Damage = 20, CardType = "Monster" } };
 
             var battle = new Battle(player1.Id, player2.Id);
